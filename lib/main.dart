@@ -1,7 +1,8 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'services/fcm_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -11,7 +12,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('Background message: ${message.messageId}');
 }
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
@@ -29,8 +30,69 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: Scaffold(
-        body: Center(child: Text('FCM App Running')),
+      debugShowCheckedModeBanner: false,
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final FCMService _fcmService = FCMService();
+
+  String statusText = 'Waiting for a cloud message';
+  String imagePath = 'assets/images/default.png';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _initializeFCM();
+  }
+
+  void _initializeFCM() async {
+    await _fcmService.initialize(onData: (message) {
+      setState(() {
+        statusText =
+            message.notification?.title ?? 'Payload received';
+
+        imagePath =
+            'assets/images/${message.data['asset'] ?? 'default'}.png';
+      });
+    });
+
+    await _printToken();
+  }
+
+  Future<void> _printToken() async {
+    final token = await _fcmService.getToken();
+    print("\n========== FCM TOKEN ==========");
+    print(token);
+    print("================================\n");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('FCM Demo')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(statusText),
+            const SizedBox(height: 20),
+            Image.asset(
+              imagePath,
+              height: 200,
+            ),
+          ],
+        ),
       ),
     );
   }
