@@ -62,8 +62,7 @@ class _HomePageState extends State<HomePage> {
         statusText =
             message.notification?.title ?? 'Payload received';
 
-        imagePath =
-            'assets/images/${message.data['asset'] ?? 'default'}.png';
+        imagePath = 'assets/images/promo.png';
       });
     });
 
