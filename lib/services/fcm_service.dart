@@ -13,19 +13,29 @@ class FCMService {
       sound: true,
     );
 
+    // ✅ THIS FIXES FOREGROUND NOTIFICATIONS
+    await messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
     // foreground
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("FOREGROUND MESSAGE RECEIVED"); // debug
       onData(message);
     });
 
     // when app opened from background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print("OPENED FROM BACKGROUND"); // debug
       onData(message);
     });
 
     // when app opened from terminated state
     final initialMessage = await messaging.getInitialMessage();
     if (initialMessage != null) {
+      print("OPENED FROM TERMINATED"); // debug
       onData(initialMessage);
     }
   }
